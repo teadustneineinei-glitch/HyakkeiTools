@@ -1,8 +1,6 @@
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
@@ -130,7 +128,7 @@ public sealed class SnipResultWindow : Window
             _outline.Close();
         };
         ContentRendered += (_, _) => FixPlacement();
-        SourceInitialized += (_, _) => WindowExStyle.Apply(this, WindowExStyle.ToolWindow);
+        SourceInitialized += (_, _) => WindowExStyles.Add(this, WindowExStyles.ToolWindow);
 
         SelectMode(_tool.Settings.TargetMode);
         _loading = false;
@@ -310,27 +308,8 @@ public sealed class RegionOutlineWindow : Window
         border.SetResourceReference(Border.BorderBrushProperty, "Island.Accent");
         Content = border;
 
-        SourceInitialized += (_, _) => WindowExStyle.Apply(this,
-            WindowExStyle.ToolWindow | WindowExStyle.Transparent | WindowExStyle.NoActivate);
+        SourceInitialized += (_, _) => WindowExStyles.Add(this,
+            WindowExStyles.ToolWindow | WindowExStyles.Transparent | WindowExStyles.NoActivate);
     }
 }
 
-internal static class WindowExStyle
-{
-    public const int ToolWindow = 0x00000080;
-    public const int Transparent = 0x00000020;
-    public const int NoActivate = 0x08000000;
-    private const int GwlExstyle = -20;
-
-    public static void Apply(Window window, int flags)
-    {
-        var h = new WindowInteropHelper(window).Handle;
-        _ = SetWindowLong(h, GwlExstyle, GetWindowLong(h, GwlExstyle) | flags);
-    }
-
-    [DllImport("user32.dll")]
-    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-    [DllImport("user32.dll")]
-    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-}

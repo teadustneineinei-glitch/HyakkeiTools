@@ -48,7 +48,7 @@ public sealed class TranslatorTool : ITool, IToolSession, IToolQuickInput
     /// <summary>按设置决定方向并翻译，服务商失败自动回退。返回译文。</summary>
     public async Task<string> TranslateAsync(string text, CancellationToken ct)
     {
-        var source = DetectLang(text);
+        var source = LanguageDetect.Detect(text);
         var target = Settings.TargetMode switch
         {
             "Zh" => "zh",
@@ -132,25 +132,4 @@ public sealed class TranslatorTool : ITool, IToolSession, IToolQuickInput
         }
     }
 
-    /// <summary>本地语种侦测：中文（CJK）/ 法语（重音字符或常见虚词）/ 其余视为英语。</summary>
-    private static string DetectLang(string text)
-    {
-        if (ContainsCjk(text)) return "zh";
-        if (LooksFrench(text)) return "fr";
-        return "en";
-    }
-
-    private static bool LooksFrench(string text)
-    {
-        // é è ê ë à â ç ù û ü ô î ï œ É È Ê À Ç
-        const string accents = "éèêëàâçùûüôîïœÉÈÊÀÇ";
-        if (text.Any(c => accents.Contains(c))) return true;
-
-        var padded = " " + text.ToLowerInvariant() + " ";
-        string[] markers = [" le ", " la ", " les ", " des ", " une ", " est ", " et ", " pour ", " que ", " vous ", " nous ", " avec ", " dans ", " pas "];
-        return markers.Count(m => padded.Contains(m)) >= 2;
-    }
-
-    private static bool ContainsCjk(string text)
-        => text.Any(c => c is >= '一' and <= '鿿' or >= '㐀' and <= '䶿');
 }

@@ -10,7 +10,7 @@
     <AssemblyName>HyakkeiTools</AssemblyName>
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.5.0</Version>
+    <Version>0.6.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

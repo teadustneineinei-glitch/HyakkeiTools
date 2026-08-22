@@ -10,6 +10,10 @@ namespace Hyakkei.Core;
 /// </summary>
 public static class WindowActivator
 {
+    /// <summary>窗口当前是否为系统前台窗口。</summary>
+    public static bool IsForeground(Window window)
+        => GetForegroundWindow() == new WindowInteropHelper(window).Handle;
+
     public static void ForceForeground(Window window)
     {
         var hwnd = new WindowInteropHelper(window).Handle;

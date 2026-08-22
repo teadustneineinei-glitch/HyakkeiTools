@@ -20,7 +20,9 @@ Windows 个人功能中心。设计原则：**极简模块可开关 → 轻量 �
 
 ## 技术栈
 - .NET 10 + WPF；依赖仅 WPF-UI 4.3（连字符包名）+ H.NotifyIcon.Wpf 2.4。
-- 构建：`dotnet build HyakkeiTools.slnx -c Release`；运行：`src\Hyakkei.App\bin\Release\net10.0-windows10.0.19041.0\HyakkeiTools.exe`（App/Translator 为 windows10 TFM，解锁 WinRT OCR；Core/AutoClicker 仍为 net10.0-windows）。
+- 构建：`dotnet build HyakkeiTools.slnx -c Release`；开发运行：`src\Hyakkei.App\bin\Release\net10.0-windows10.0.19041.0\HyakkeiTools.exe`（App/Translator 为 windows10 TFM，解锁 WinRT OCR；Core/AutoClicker 仍为 net10.0-windows）。
+- **打包**：`scripts\publish.ps1` → `dist\HyakkeiTools.exe`（单文件 31MB，framework-dependent；`-SelfContained` 可捆绑运行时）。用户日常运行 dist 版，配置/日志在 dist 同目录，脚本重发布时保留。
+- 版本控制：已 `git init`（2026-08-15），每次阶段完成提交；`dotnet format whitespace` 统一格式。
 
 ## 关键经验
 - **UI 文案极简**：界面里不写说明/引导文字（搜索框占位只写「检索」，岛列表只显示模块名不带描述），操作方式写文档不写界面。
@@ -37,6 +39,7 @@ Windows 个人功能中心。设计原则：**极简模块可开关 → 轻量 �
 - 纯代码构造 H.NotifyIcon 的 `TaskbarIcon` 必须调 `ForceCreate(enablesEfficiencyMode: false)`，否则托盘图标不出现。
 
 ## 当前状态
+- [2026-08-15] **v0.6 整理 + 打包**：Win32 辅助收拢到 Core（`WindowExStyles`、`WindowActivator.IsForeground`）、语种侦测去重（`LanguageDetect`）、岛快捷动作拆为 `IslandWindow.QuickActions.cs`；`scripts/publish.ps1` 单文件发布；`docs/usage.md` 用户手册。
 - [2026-08-15] **v0.5**：① 服务商回退链——用户在国外，Auto = 谷歌(gtx 免费接口，已实测) → 百度(有Key时) → 腾讯兜底，失败自动降级，`Tools.translator.Provider` 可强制；② **截屏翻译**——面板「截屏」→ 拉框 → Windows 内置 OCR（Windows.Media.Ocr）→ 自动翻译；③ **法语**——目标分段 自动/中/EN/FR，本地侦测 zh/fr/en（法语靠重音字符+虚词），谷歌源语言交给 `sl=auto`，百度法语代码 `fra`；④ **F6 一键两用**（用户定稿）：有选中文字→划词翻译弹岛，无选中→截屏翻译就地出卡片（译文贴选区旁 + 天青描边，可拖动；卡片内可切目标语言重译、「复制原文/复制译文」，原文即 OCR 结果=文字识别功能）；面板内 Ctrl+1-4 切目标语言（裸数字永远输入）。不加第二热键。
 - 经验：Bash/perl 写入非 ASCII 会双重编码，**含中文/重音的改动用 Edit/Write 工具**，Bash 只做纯 ASCII 替换。
 - OCR 按语言分模型：用户机器曾只装 zh-Hans OCR 包导致英文识别差；`OcrService` 已改为中→英/法引擎自动选择，但**英/法包需用户自行安装**（设置→语言→勾选光学字符识别，或 `Add-WindowsCapability Language.OCR~~~en-US~0.0.1.0`）。
@@ -46,3 +49,4 @@ Windows 个人功能中心。设计原则：**极简模块可开关 → 轻量 �
 ## 文档索引
 - [docs/architecture.md](docs/architecture.md) — 架构设计、选型调研、P0/v0.2 实施记录
 - [docs/design/DESIGN.md](docs/design/DESIGN.md) — **界面设计规范**（色彩/字号/间距/控件/模块面板模板，做任何 UI 前必读）
+- [docs/usage.md](docs/usage.md) — 用户手册（所有操作方式的唯一归宿，界面不写说明）

@@ -39,7 +39,7 @@ public static class OcrService
         {
             var zhResult = await zh.RecognizeAsync(soft);
             var zhText = Clean(zhResult, "zh-Hans-CN");
-            if (ContainsCjk(zhText) || (en is null && fr is null))
+            if (LanguageDetect.ContainsCjk(zhText) || (en is null && fr is null))
             {
                 if (en is null && !_hintLogged)
                 {
@@ -54,7 +54,7 @@ public static class OcrService
         if (en is not null)
         {
             var enText = Clean(await en.RecognizeAsync(soft), "en");
-            if (fr is not null && LooksFrench(enText))
+            if (fr is not null && LanguageDetect.LooksFrench(enText))
                 return Clean(await fr.RecognizeAsync(soft), "fr");
             return enText;
         }
@@ -81,7 +81,7 @@ public static class OcrService
         {
             var text = l.Text;
             // 中文 OCR 会在字间插空格，去掉；拉丁文字行保留空格
-            return ContainsCjk(text) ? text.Replace(" ", "") : text;
+            return LanguageDetect.ContainsCjk(text) ? text.Replace(" ", "") : text;
         });
         return string.Join("\n", lines).Trim();
     }
@@ -105,15 +105,4 @@ public static class OcrService
             bytes.AsBuffer(), BitmapPixelFormat.Bgra8, bmp.Width, bmp.Height, BitmapAlphaMode.Premultiplied);
     }
 
-    private static bool ContainsCjk(string text)
-        => text.Any(c => c is >= '一' and <= '鿿');
-
-    private static bool LooksFrench(string text)
-    {
-        const string accents = "éèêëàâçùûüôîïœÉÈÊÀÇ";
-        if (text.Any(c => accents.Contains(c))) return true;
-        var padded = " " + text.ToLowerInvariant() + " ";
-        string[] markers = [" le ", " la ", " les ", " des ", " une ", " est ", " et ", " pour ", " que ", " vous ", " nous ", " avec ", " dans ", " pas "];
-        return markers.Count(m => padded.Contains(m)) >= 2;
-    }
 }

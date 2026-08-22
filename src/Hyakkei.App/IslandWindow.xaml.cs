@@ -1,11 +1,6 @@
-using System.Data;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Hyakkei.Core;
@@ -36,9 +31,9 @@ public sealed class IslandChip
 
 /// <summary>
 /// 岛（命令面板形态）：双击 Ctrl 在屏幕上三分之一居中弹出，跟随系统主题 + 亚克力背景。
-/// 列表态 = 搜索框 + 模块/快捷动作行（↑↓ 选择 / 数字直达 / 回车进入 / 点击进入）；
+/// 列表态 = 搜索框 + 模块/快捷动作行（↑↓ 选择 / Ctrl+数字直达 / 回车进入 / 点击进入）；
 /// 展开态 = 模块极简面板。Esc 逐级返回，Alt 在面板与列表间往返，失焦即隐藏。
-/// 主页 F6 = 动作键：岛列表态按 F6 复制当前行的值；岛隐藏时有选中文字则取词唤岛填入搜索框，无选中无反应（唤起只归双击 Ctrl）；
+/// F6 = 动作键：列表态复制当前行的值；岛隐藏时有选中文字则取词唤岛填入搜索框，无选中无反应（唤起只归双击 Ctrl）；
 /// 进入模块面板时 F6 移交给模块。
 /// </summary>
 public partial class IslandWindow
@@ -46,24 +41,18 @@ public partial class IslandWindow
     private const double MaxExpandedContent = 340;
     private const double MinWindowHeight = 58;
 
-    private static readonly Regex UrlPattern = new(
-        @"^(https?://\S+|www\.\S+|[\w\-]+(\.[\w\-]+)+(/\S*)?)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-    private static readonly Regex MathPattern = new(
-        @"^[\d\s\.\+\-\*/%\(\)]+$", RegexOptions.Compiled);
-
     private readonly Dictionary<string, FrameworkElement> _islandViewCache = [];
+    private readonly ForegroundWatcher _fgWatcher = new();
     private List<IslandChip> _allChips = [];
     private List<IslandChip> _visibleChips = [];
     private ITool? _expandedTool;
     private ITool? _sessionTool;
     private ITool? _lastTool; // 最近一次离开的模块面板，供 Alt 在列表里一键回去
     private bool _hiding;
-    private int _homeHotkeyId = -1;
-
-    private ForegroundWatcher? _fgWatcher;
     private bool _ownedForeground;
     private bool _heightAnimating;
+    private bool _altTapPending;
+    private int _homeHotkeyId = -1;
 
     public IslandWindow()
     {
@@ -75,11 +64,10 @@ public partial class IslandWindow
         // 失焦即隐：不依赖 WPF Deactivated（AttachThreadInput 抢前台后可能不触发）。
         // 规则：本次显示期间岛"曾拿到过前台"，之后前台变成别人 → 隐藏；
         // 从未拿到过（抢前台被系统拒绝）则保持可见，等用户点击岛获得前台后规则生效。
-        _fgWatcher = new ForegroundWatcher();
         _fgWatcher.ForegroundChanged += _ =>
         {
             if (!IsVisible || _hiding) return;
-            if (GetForegroundWindow() == new WindowInteropHelper(this).Handle)
+            if (WindowActivator.IsForeground(this))
                 _ownedForeground = true;
             else if (_ownedForeground)
                 HideIsland();
@@ -94,27 +82,84 @@ public partial class IslandWindow
 
     protected override void OnClosed(EventArgs e)
     {
-        _fgWatcher?.Dispose();
-        _fgWatcher = null;
+        _fgWatcher.Dispose();
         base.OnClosed(e);
     }
 
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
-        // WS_EX_TOOLWINDOW：不出现在 Alt+Tab 列表
-        var handle = new WindowInteropHelper(this).Handle;
-        _ = SetWindowLong(handle, GwlExstyle, GetWindowLong(handle, GwlExstyle) | WsExToolwindow);
+        WindowExStyles.Add(this, WindowExStyles.ToolWindow); // 不出现在 Alt+Tab
     }
 
-    // ---- 主页热键（无模块会话时 F6 归岛） ----
+    // ---- 显示 / 隐藏 ----
+
+    public void Toggle()
+    {
+        if (IsVisible) HideIsland();
+        else ShowIsland();
+    }
+
+    public void ShowIsland()
+    {
+        _hiding = false;
+        _ownedForeground = false;
+        RebuildChips();
+
+        // 会话中的模块被停用则顺带结束会话
+        if (_sessionTool is not null && App.Config.Current.DisabledTools.Contains(_sessionTool.Id))
+            EndActiveSession();
+
+        if (_sessionTool is not null)
+        {
+            Expand(_sessionTool); // 隐身挂载：唤起时直接回到会话模块的面板
+        }
+        else
+        {
+            SwitchToCompact(animated: false);
+            SearchBox.Text = "";
+        }
+
+        var wa = SystemParameters.WorkArea;
+        Left = wa.Left + (wa.Width - Width) / 2;
+        Top = wa.Top + wa.Height * 0.22;
+
+        Root.Opacity = 0;
+        Show();
+        WindowActivator.ForceForeground(this);
+        if (WindowActivator.IsForeground(this))
+            _ownedForeground = true;
+        SearchBox.Focus();
+        Keyboard.Focus(SearchBox);
+
+        RunAnimation(fromOpacity: 0, toOpacity: 1, fromY: -8, toY: 0, ms: 140);
+        Log.Info("岛已唤起");
+    }
+
+    public void HideIsland()
+    {
+        if (_hiding || !IsVisible) return;
+        _hiding = true;
+
+        // onCompleted 必须在 Storyboard.Begin 之前挂好（RunAnimation 内部保证）
+        RunAnimation(fromOpacity: 1, toOpacity: 0, fromY: 0, toY: -6, ms: 110, onCompleted: () =>
+        {
+            if (!_hiding) return; // 隐藏动画期间又被唤起
+            _hiding = false;
+            Hide();
+            ProcessMemory.TrimWorkingSet();
+            Log.Info("岛已隐藏");
+        });
+    }
+
+    // ---- 主页 F6（无模块会话时归岛） ----
 
     /// <summary>启用主页 F6。须在 ToolContext.ModuleHotkeys 就绪后调用。</summary>
     public void EnableHomeHotkey() => RegisterHomeHotkey();
 
     private void RegisterHomeHotkey()
     {
-        if (_homeHotkeyId >= 0 || ToolContext.ModuleHotkeys is null) return;
+        if (_homeHotkeyId >= 0) return;
         _homeHotkeyId = ToolContext.ModuleHotkeys.Register(App.Config.Current.ModuleHotkey, OnHomeHotkey);
     }
 
@@ -125,10 +170,6 @@ public partial class IslandWindow
         _homeHotkeyId = -1;
     }
 
-    /// <summary>
-    /// 主页 F6 = 动作键：岛在列表态 → 复制当前行的值（算式结果/链接）；
-    /// 岛隐藏时 → 有选中文字则取词、唤岛、填入搜索框；没有选中则无反应（唤起只归双击 Ctrl）。
-    /// </summary>
     private void OnHomeHotkey()
     {
         if (IsVisible)
@@ -154,82 +195,7 @@ public partial class IslandWindow
         SearchBox.CaretIndex = single.Length;
     }
 
-    private void CopySelectedRowValue()
-    {
-        if (_expandedTool is not null) return;
-        var chip = ResultList.SelectedItem as IslandChip ?? _visibleChips.FirstOrDefault();
-        if (chip?.CopyValue is null) return;
-        try
-        {
-            Clipboard.SetText(chip.CopyValue);
-            Log.Info($"已复制：{chip.CopyValue}");
-        }
-        catch (Exception ex)
-        {
-            Log.Error("复制失败", ex);
-        }
-    }
-
-    public void Toggle()
-    {
-        if (IsVisible) HideIsland();
-        else ShowIsland();
-    }
-
-    public void ShowIsland()
-    {
-        _hiding = false;
-        _ownedForeground = false;
-        RebuildChips();
-
-        // 会话中的模块被停用则顺带结束会话
-        if (_sessionTool is not null && App.Config.Current.DisabledTools.Contains(_sessionTool.Id))
-            EndActiveSession();
-
-        if (_sessionTool is not null)
-        {
-            // 隐身挂载：唤起时直接回到会话模块的面板
-            Expand(_sessionTool);
-        }
-        else
-        {
-            SwitchToCompact(animated: false);
-            SearchBox.Text = "";
-        }
-
-        var wa = SystemParameters.WorkArea;
-        Left = wa.Left + (wa.Width - Width) / 2;
-        Top = wa.Top + wa.Height * 0.22;
-
-        Root.Opacity = 0;
-        Show();
-        WindowActivator.ForceForeground(this);
-        if (GetForegroundWindow() == new WindowInteropHelper(this).Handle)
-            _ownedForeground = true;
-        SearchBox.Focus();
-        Keyboard.Focus(SearchBox);
-
-        RunAnimation(fromOpacity: 0, toOpacity: 1, fromY: -8, toY: 0, ms: 140);
-        Log.Info("岛已唤起");
-    }
-
-    public void HideIsland()
-    {
-        if (_hiding || !IsVisible) return;
-        _hiding = true;
-
-        // onCompleted 必须在 Storyboard.Begin 之前挂好（RunAnimation 内部保证）
-        RunAnimation(fromOpacity: 1, toOpacity: 0, fromY: 0, toY: -6, ms: 110, onCompleted: () =>
-        {
-            if (!_hiding) return; // 隐藏动画期间又被唤起
-            _hiding = false;
-            Hide();
-            ProcessMemory.TrimWorkingSet();
-            Log.Info("岛已隐藏");
-        });
-    }
-
-    // ---- 列表态：模块行 + 快捷动作行 ----
+    // ---- 列表态 ----
 
     private void RebuildChips()
     {
@@ -261,84 +227,6 @@ public partial class IslandWindow
 
         if (_expandedTool is null)
             UpdateHeight(animated: false); // 过滤时即时调整，回车/点击进入时才播动画
-    }
-
-    /// <summary>万能输入：链接 → 打开；算式 → 结果；其余 → 各模块的快捷动作（如翻译）。</summary>
-    private IEnumerable<IslandChip> BuildQuickActions(string query)
-    {
-        if (UrlPattern.IsMatch(query))
-        {
-            var url = query.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? query : "https://" + query;
-            yield return new IslandChip
-            {
-                Glyph = "\uE774", // Globe
-                Name = "打开链接",
-                CopyValue = url,
-                Action = () =>
-                {
-                    HideIsland();
-                    try
-                    {
-                        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error("打开链接失败", ex);
-                    }
-                },
-            };
-            yield break;
-        }
-
-        if (TryEvaluate(query, out var result))
-        {
-            yield return new IslandChip
-            {
-                Glyph = "\uE8EF", // Calculator
-                Name = "= " + result,
-                CopyValue = result,
-                Action = () =>
-                {
-                    try
-                    {
-                        Clipboard.SetText(result);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error("复制结果失败", ex);
-                    }
-                    HideIsland();
-                },
-            };
-            yield break;
-        }
-
-        var disabled = App.Config.Current.DisabledTools;
-        foreach (var tool in App.Tools.Tools)
-        {
-            if (disabled.Contains(tool.Id) || tool is not IToolQuickInput quick) continue;
-            var label = quick.QuickActionLabel(query);
-            if (label is null) continue;
-            yield return new IslandChip { Tool = tool, Glyph = tool.IconGlyph, Name = label, QuickInput = query };
-        }
-    }
-
-    private static bool TryEvaluate(string expr, out string result)
-    {
-        result = "";
-        if (!MathPattern.IsMatch(expr) || !expr.Any(c => "+-*/%".Contains(c)) || !expr.Any(char.IsDigit))
-            return false;
-        try
-        {
-            var value = Convert.ToDouble(new DataTable().Compute(expr, ""));
-            if (double.IsNaN(value) || double.IsInfinity(value)) return false;
-            result = value.ToString("G15");
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
     }
 
     private void OnSearchChanged(object sender, TextChangedEventArgs e)
@@ -430,20 +318,7 @@ public partial class IslandWindow
 
     private void UpdateHeight(bool animated)
     {
-        var limit = new Size(Width, double.PositiveInfinity);
-        double target;
-        if (_expandedTool is null)
-        {
-            CompactPanel.Measure(limit);
-            target = CompactPanel.DesiredSize.Height;
-        }
-        else
-        {
-            ExpandedPanel.Measure(limit);
-            target = Math.Min(ExpandedPanel.DesiredSize.Height, MaxExpandedContent);
-        }
-        target = Math.Max(target, MinWindowHeight);
-
+        var target = Math.Max(MeasureContentHeight(), MinWindowHeight);
         if (animated)
         {
             AnimateHeight(target);
@@ -453,6 +328,18 @@ public partial class IslandWindow
             BeginAnimation(HeightProperty, null);
             Height = target;
         }
+    }
+
+    private double MeasureContentHeight()
+    {
+        var limit = new Size(Width, double.PositiveInfinity);
+        if (_expandedTool is null)
+        {
+            CompactPanel.Measure(limit);
+            return CompactPanel.DesiredSize.Height;
+        }
+        ExpandedPanel.Measure(limit);
+        return Math.Min(ExpandedPanel.DesiredSize.Height, MaxExpandedContent);
     }
 
     private void AnimateHeight(double target)
@@ -474,15 +361,12 @@ public partial class IslandWindow
     private void OnLayoutUpdatedAdjustHeight(object? sender, EventArgs e)
     {
         if (_expandedTool is null || !IsVisible || _hiding || _heightAnimating) return;
-        ExpandedPanel.Measure(new Size(Width, double.PositiveInfinity));
-        var target = Math.Max(Math.Min(ExpandedPanel.DesiredSize.Height, MaxExpandedContent), MinWindowHeight);
+        var target = Math.Max(MeasureContentHeight(), MinWindowHeight);
         if (Math.Abs(target - Height) > 2)
             AnimateHeight(target);
     }
 
     // ---- 键盘 ----
-
-    private bool _altTapPending;
 
     private void OnWindowPreviewKeyDown(object sender, KeyEventArgs e)
     {
@@ -519,8 +403,7 @@ public partial class IslandWindow
                 e.Handled = true;
                 return;
             case Key.Enter when _visibleChips.Count > 0:
-                var selected = ResultList.SelectedItem as IslandChip ?? _visibleChips[0];
-                Activate(selected);
+                Activate(ResultList.SelectedItem as IslandChip ?? _visibleChips[0]);
                 e.Handled = true;
                 return;
         }
@@ -545,19 +428,18 @@ public partial class IslandWindow
     private void OnWindowPreviewKeyUp(object sender, KeyEventArgs e)
     {
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
-        if (key is Key.LeftAlt or Key.RightAlt && _altTapPending)
+        if (key is not (Key.LeftAlt or Key.RightAlt) || !_altTapPending) return;
+
+        _altTapPending = false;
+        if (_expandedTool is not null)
         {
-            _altTapPending = false;
-            if (_expandedTool is not null)
-            {
-                SwitchToCompact(animated: true);
-                e.Handled = true;
-            }
-            else if (_lastTool is not null && !App.Config.Current.DisabledTools.Contains(_lastTool.Id))
-            {
-                Expand(_lastTool);
-                e.Handled = true;
-            }
+            SwitchToCompact(animated: true);
+            e.Handled = true;
+        }
+        else if (_lastTool is not null && !App.Config.Current.DisabledTools.Contains(_lastTool.Id))
+        {
+            Expand(_lastTool);
+            e.Handled = true;
         }
     }
 
@@ -589,18 +471,4 @@ public partial class IslandWindow
             sb.Completed += (_, _) => onCompleted();
         sb.Begin();
     }
-
-    // ---- Win32 ----
-
-    private const int GwlExstyle = -20;
-    private const int WsExToolwindow = 0x00000080;
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll")]
-    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-    [DllImport("user32.dll")]
-    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 }
