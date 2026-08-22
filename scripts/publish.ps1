@@ -25,6 +25,8 @@ $sc = if ($SelfContained) { "true" } else { "false" }
 dotnet publish $project -c Release -r win-x64 -p:SelfContained=$sc `
     -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:EnableCompressionInSingleFile=$sc `
+    -p:SatelliteResourceLanguages=zh-Hans `
     -p:DebugType=none `
     -o $dist
 
