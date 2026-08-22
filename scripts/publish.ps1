@@ -4,12 +4,13 @@
 #        scripts\publish.ps1 -SelfContained  (bundle runtime, ~3x larger, runs without .NET installed)
 # NOTE: keep this file ASCII-only (PowerShell 5.1 reads BOM-less files as ANSI).
 param(
-    [switch]$SelfContained
+    [switch]$SelfContained,
+    [string]$OutDir = ""
 )
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent
-$dist = Join-Path $root "dist"
+$dist = if ($OutDir) { $OutDir } else { Join-Path $root "dist" }
 $project = Join-Path $root "src\Hyakkei.App\Hyakkei.App.csproj"
 
 Get-Process HyakkeiTools -ErrorAction SilentlyContinue | Stop-Process -Force
