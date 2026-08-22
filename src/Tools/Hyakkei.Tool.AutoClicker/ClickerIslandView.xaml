@@ -1,0 +1,84 @@
+<UserControl x:Class="Hyakkei.Tool.AutoClicker.ClickerIslandView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 布局遵循 docs/design/DESIGN.md：行1 选择组，行2 参数 + 状态 + 主按钮 -->
+    <StackPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 目标：左键 / 右键 / 键盘（选中后再点一次 = 捕获新键） -->
+            <Border Grid.Column="0" CornerRadius="6" Padding="2" Background="{DynamicResource Island.TrackWash}">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="LeftBtn" GroupName="target" Content="左键"
+                                 Style="{DynamicResource Island.Segment}" Checked="OnTargetChanged" />
+                    <RadioButton x:Name="RightBtn" GroupName="target" Content="右键"
+                                 Style="{DynamicResource Island.Segment}" Checked="OnTargetChanged" />
+                    <RadioButton x:Name="KeyBtn" GroupName="target"
+                                 Style="{DynamicResource Island.Segment}" Checked="OnTargetChanged" Click="OnKeySegClick"
+                                 ToolTip="再点一次改键">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE765;" FontFamily="Segoe Fluent Icons" FontSize="12" VerticalAlignment="Center" />
+                            <TextBlock x:Name="KeySegLabel" Margin="6,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </Border>
+
+            <!-- 模式：连点 / 长按 -->
+            <Border Grid.Column="2" CornerRadius="6" Padding="2" Background="{DynamicResource Island.TrackWash}">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="ClickModeBtn" GroupName="mode" Content="连点"
+                                 Style="{DynamicResource Island.Segment}" Checked="OnModeChanged" />
+                    <RadioButton x:Name="HoldModeBtn" GroupName="mode" Content="长按"
+                                 Style="{DynamicResource Island.Segment}" Checked="OnModeChanged" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 间隔（仅连点模式生效） -->
+            <Border x:Name="IntervalField" Grid.Column="0" Height="32" CornerRadius="6" Padding="12,0"
+                    BorderBrush="{DynamicResource Island.Hairline}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBox x:Name="IntervalBox" Style="{x:Null}" Width="40"
+                             Background="Transparent" BorderThickness="0" Padding="0"
+                             FontSize="13" TextAlignment="Center"
+                             Foreground="{DynamicResource Island.TextPrimary}"
+                             CaretBrush="{DynamicResource Island.Accent}"
+                             TextChanged="OnIntervalChanged" LostFocus="OnIntervalLostFocus" />
+                    <TextBlock Text="ms" FontSize="11" Margin="6,0,0,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Island.TextTertiary}" />
+                </StackPanel>
+            </Border>
+
+            <!-- 频率预设 -->
+            <StackPanel x:Name="PresetPanel" Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+                <Button Content="1/秒" Tag="1000" Style="{DynamicResource Island.Chip}" Click="OnPresetClick" />
+                <Button Content="5/秒" Tag="200" Style="{DynamicResource Island.Chip}" Margin="6,0,0,0" Click="OnPresetClick" />
+                <Button Content="10/秒" Tag="100" Style="{DynamicResource Island.Chip}" Margin="6,0,0,0" Click="OnPresetClick" />
+                <Button Content="50/秒" Tag="20" Style="{DynamicResource Island.Chip}" Margin="6,0,0,0" Click="OnPresetClick" />
+            </StackPanel>
+
+            <Ellipse x:Name="StatusDot" Grid.Column="3" Width="8" Height="8" VerticalAlignment="Center"
+                     Fill="{DynamicResource Island.TextTertiary}" />
+            <Button x:Name="StartBtn" Grid.Column="4" Content="开始" Margin="12,0,0,0"
+                    Style="{DynamicResource Island.PrimaryButton}" Click="OnStartClick" />
+            <TextBlock x:Name="HotkeyHint" Grid.Column="5" FontSize="11" Margin="12,0,0,0" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Island.TextTertiary}" />
+        </Grid>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,180 @@
+<ui:FluentWindow x:Class="Hyakkei.App.IslandWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:local="clr-namespace:Hyakkei.App"
+                 Title="百景岛"
+                 Width="640" Height="120"
+                 MinWidth="0" MinHeight="0"
+                 WindowBackdropType="Acrylic"
+                 WindowCornerPreference="Round"
+                 ExtendsContentIntoTitleBar="True"
+                 ResizeMode="NoResize"
+                 Topmost="True" ShowInTaskbar="False" ShowActivated="True"
+                 WindowStartupLocation="Manual"
+                 PreviewKeyDown="OnWindowPreviewKeyDown"
+                 PreviewKeyUp="OnWindowPreviewKeyUp"
+                 Deactivated="OnWindowDeactivated">
+
+    <ui:FluentWindow.Resources>
+        <!-- 结果行容器：圆角、悬停淡晕、选中天青晕 -->
+        <Style x:Key="RowStyle" TargetType="ListBoxItem">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bg" CornerRadius="6" Margin="0,1" Padding="12,0" Background="Transparent">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource Island.HoverWash}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource Island.AccentWash}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <EventSetter Event="PreviewMouseLeftButtonUp" Handler="OnRowMouseUp" />
+        </Style>
+
+        <DataTemplate x:Key="RowTemplate" DataType="{x:Type local:IslandChip}">
+            <Grid Height="40">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding Glyph}" FontFamily="Segoe Fluent Icons"
+                           FontSize="17" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{DynamicResource Island.IconDefault}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                    <Setter Property="Foreground" Value="{DynamicResource Island.Accent}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- 只留名称（用户定稿：不写描述，越简单越好） -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="14,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Island.TextPrimary}" />
+                    <Ellipse Width="5" Height="5" Margin="8,1,0,0" VerticalAlignment="Center"
+                             Fill="{DynamicResource Island.Accent}">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                </StackPanel>
+
+                <TextBlock Grid.Column="2" Text="{Binding NumberHint}" FontSize="11" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{DynamicResource Island.TextTertiary}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                    <Setter Property="Foreground" Value="{DynamicResource Island.Accent}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </DataTemplate>
+    </ui:FluentWindow.Resources>
+
+    <Border Background="{DynamicResource Island.Bg}">
+        <Grid x:Name="Root">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="RootTranslate" />
+            </Grid.RenderTransform>
+
+            <!-- 紧凑态：搜索行 + 结果列表 -->
+            <Grid x:Name="CompactPanel">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="58" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="20,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="&#xE721;" FontFamily="Segoe Fluent Icons" FontSize="15"
+                               Foreground="{DynamicResource Island.TextTertiary}" VerticalAlignment="Center" />
+
+                    <Grid Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
+                        <TextBox x:Name="SearchBox" Style="{x:Null}"
+                                 Background="Transparent" BorderThickness="0" Padding="0"
+                                 Foreground="{DynamicResource Island.TextPrimary}"
+                                 CaretBrush="{DynamicResource Island.Accent}"
+                                 FontSize="16" VerticalContentAlignment="Center"
+                                 TextChanged="OnSearchChanged" />
+                        <TextBlock x:Name="Watermark" Text="检索" Margin="4,0,0,0"
+                                   FontSize="15" Foreground="{DynamicResource Island.TextTertiary}"
+                                   IsHitTestVisible="False" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <TextBlock Grid.Column="2" Text="Esc" FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Island.TextTertiary}" />
+                </Grid>
+
+                <StackPanel Grid.Row="1">
+                    <Rectangle Height="1" Margin="16,0" Fill="{DynamicResource Island.Hairline}" />
+                    <ListBox x:Name="ResultList" Margin="10,7,10,12"
+                             Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ItemContainerStyle="{StaticResource RowStyle}"
+                             ItemTemplate="{StaticResource RowTemplate}" />
+                    <TextBlock x:Name="EmptyHint" Text="没有匹配的模块" Visibility="Collapsed"
+                               FontSize="13" Margin="0,2,0,16" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource Island.TextTertiary}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- 展开态：返回 + 模块名 + 模块岛视图 -->
+            <Grid x:Name="ExpandedPanel" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="12,12,20,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Style="{StaticResource Island.IconButton}" Click="OnBackClick">
+                        <TextBlock Text="&#xE76B;" FontFamily="Segoe Fluent Icons" FontSize="12" />
+                    </Button>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
+                                VerticalAlignment="Center" Margin="-32,0,0,0">
+                        <TextBlock x:Name="HeaderGlyph" FontFamily="Segoe Fluent Icons" FontSize="12"
+                                   Foreground="{DynamicResource Island.TextSecondary}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="HeaderTitle" FontSize="12" Margin="6,0,0,0"
+                                   Foreground="{DynamicResource Island.TextSecondary}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+
+                <ContentControl x:Name="IslandHost" Grid.Row="1" Margin="20,8,20,18" />
+            </Grid>
+        </Grid>
+    </Border>
+</ui:FluentWindow>

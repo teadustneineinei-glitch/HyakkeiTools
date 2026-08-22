@@ -1,0 +1,21 @@
+{
+  "artboards": [
+    { "file": "Tianqing.dc.html", "x": 0, "y": 0, "w": 760, "h": 430, "title": "E · 天青", "page": "guofeng" },
+    { "file": "Doulv.dc.html", "x": 820, "y": 0, "w": 760, "h": 430, "title": "F · 豆绿", "page": "guofeng" },
+    { "file": "Dailan.dc.html", "x": 0, "y": 510, "w": 760, "h": 430, "title": "G · 黛蓝", "page": "guofeng" },
+    { "file": "Taoyao.dc.html", "x": 820, "y": 510, "w": 760, "h": 430, "title": "H · 桃夭", "page": "guofeng" },
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 760, "h": 430, "title": "A · 墨岛（恒深色）", "page": "round1" },
+    { "file": "OptionB.dc.html", "x": 820, "y": 0, "w": 760, "h": 430, "title": "B · 雾白（浅色系）", "page": "round1" },
+    { "file": "OptionC.dc.html", "x": 0, "y": 510, "w": 760, "h": 430, "title": "C · 靛蓝（品牌渐变）", "page": "round1" },
+    { "file": "OptionD.dc.html", "x": 820, "y": 510, "w": 760, "h": 430, "title": "D · 青瓷（纸感东方）", "page": "round1" }
+  ],
+  "annotations": [
+    { "id": "guofeng-note", "x": 0, "y": -180, "w": 380, "text": "第二轮：清新国风 · 极简。\n【已定稿：E 天青，2026-08-14 落实到程序，含配套深色模式】\nE 天青：雨过天青的青灰蓝，最沉静\nF 豆绿：嫩豆绿，最清新有生气\nG 黛蓝：黛石蓝灰，最中性耐看\nH 桃夭：桃花粉 + 朱砂可选，最柔和\n\n每块画板上方的色块可点选换强调色（含石青、竹青、朱砂等传统色）。\n第一轮方案在左上角页面菜单的「第一轮（存档）」里。", "page": "guofeng" },
+    { "id": "pick-note", "x": 0, "y": -170, "w": 360, "text": "第一轮方案（已存档）：A 墨岛 / B 雾白 / C 靛蓝 / D 青瓷。\n用户反馈：想要更清新的国风配色、极简风格 → 见「国风清新」页。", "page": "round1" }
+  ],
+  "pages": [
+    { "id": "guofeng", "name": "国风清新" },
+    { "id": "round1", "name": "第一轮（存档）" }
+  ],
+  "launch": { "view": "canvas", "page": "guofeng" }
+}

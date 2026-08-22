@@ -1,0 +1,32 @@
+<UserControl x:Class="Hyakkei.Tool.AutoClicker.ClickerInfoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,24" MaxWidth="640" HorizontalAlignment="Left">
+            <TextBlock Text="连点器" FontSize="26" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+            <TextBlock Text="鼠标 / 键盘的连点与长按。操作在岛内完成。"
+                       FontSize="13" Margin="0,4,0,20"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+            <Border Background="{DynamicResource ControlFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="16,14">
+                <StackPanel>
+                    <TextBlock FontSize="13" TextWrapping="Wrap" LineHeight="24"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+                        <Run Text="进入岛内面板 = 挂载热键" /><Run x:Name="HotkeyRun" FontWeight="SemiBold" />
+                        <LineBreak />
+                        <Run Text="热键按一次开始，再按一次停止；长按模式 = 按下不放 / 松开" />
+                        <LineBreak />
+                        <Run Text="岛隐藏后热键依然有效；面板内 Esc 或单击 Alt 返回列表即解除热键并停止" />
+                    </TextBlock>
+                    <TextBlock FontSize="12" Margin="0,10,0,0"
+                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                               Text="更换热键：config/settings.json 的 ModuleHotkey，重启生效。" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

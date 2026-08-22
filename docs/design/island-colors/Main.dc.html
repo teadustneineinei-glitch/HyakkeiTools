@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; }
+    a { color: #E8A54B; } a:hover { color: #d4923a; }
+  </style>
+</helmet>
+<div style="position:relative;width:760px;height:430px;overflow:hidden;background:#33363e;font-family:'Segoe UI','Microsoft YaHei',system-ui,sans-serif">
+  <div style="position:absolute;left:-60px;top:-80px;width:340px;height:340px;border-radius:50%;background:#e8a54b;opacity:0.26;filter:blur(70px)"></div>
+  <div style="position:absolute;right:-40px;bottom:-100px;width:380px;height:380px;border-radius:50%;background:#4b6fe8;opacity:0.24;filter:blur(80px)"></div>
+
+  <div style="position:absolute;left:60px;top:52px;width:640px;border-radius:14px;background:rgba(22,22,27,0.87);backdrop-filter:blur(26px) saturate(1.4);border:1px solid rgba(255,255,255,0.10);box-shadow:0 18px 50px rgba(0,0,0,0.45)">
+
+    <div style="display:flex;align-items:center;gap:12px;height:58px;padding:0 20px">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#9c9ca6" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"></circle><path d="M13.5 13.5 L17 17"></path></svg>
+      <div style="flex-grow:1;font-size:16px;color:#6f6f78">搜索模块，数字键直达…</div>
+      <div style="font-size:11px;color:#6f6f78;border:1px solid rgba(255,255,255,0.14);border-radius:6px;padding:2px 8px">Esc</div>
+    </div>
+
+    <div style="height:1px;background:rgba(255,255,255,0.08);margin:0 14px"></div>
+
+    <div style="display:flex;flex-direction:column;gap:2px;padding:8px 10px 10px">
+
+      <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 10px;border-radius:8px;background:rgba(255,255,255,0.08)">
+        <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:{{accentSoft}}">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="{{accent}}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="2.8" width="6.2" height="6.2" rx="1.6"></rect><rect x="11" y="2.8" width="6.2" height="6.2" rx="1.6"></rect><rect x="2.8" y="11" width="6.2" height="6.2" rx="1.6"></rect><rect x="11" y="11" width="6.2" height="6.2" rx="1.6"></rect></svg>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1px;flex-grow:1;min-width:0">
+          <div style="font-size:14px;color:#f2f2f5">示例工具</div>
+          <div style="font-size:11px;color:#8a8a94">验证岛内交互管线</div>
+        </div>
+        <div style="font-size:11px;padding:2px 8px;border:1px solid {{accentLine}};border-radius:6px;color:{{accent}}">1</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 10px;border-radius:8px;background:transparent">
+        <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.07)">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#cfcfd6" stroke-width="1.6" stroke-linecap="round"><path d="M9 5.5 V3.2"></path><path d="M5.5 9 H3.2"></path><path d="M6 6 L4.4 4.4"></path><path d="M9 9 v9 l2.6 -2.4 1.7 3.1 1.9 -1 -1.7 -3.1 3.3 -0.6 z" fill="#cfcfd6" stroke="none"></path></svg>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1px;flex-grow:1;min-width:0">
+          <div style="font-size:14px;color:#f2f2f5">连点器</div>
+          <div style="font-size:11px;color:#8a8a94">自动连点 · 即将到来</div>
+        </div>
+        <div style="font-size:11px;padding:2px 8px;border:1px solid rgba(255,255,255,0.14);border-radius:6px;color:#6f6f78">2</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 10px;border-radius:8px;background:transparent">
+        <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.07)">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#cfcfd6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3" width="12" height="9.5" rx="2.4"></rect><path d="M6.5 12.5 v3 l3 -3"></path><text x="8.5" y="10.3" font-size="7.5" text-anchor="middle" fill="#cfcfd6" stroke="none" style="font-family:'Microsoft YaHei',sans-serif">文</text></svg>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1px;flex-grow:1;min-width:0">
+          <div style="font-size:14px;color:#f2f2f5">翻译</div>
+          <div style="font-size:11px;color:#8a8a94">输入即翻 · 即将到来</div>
+        </div>
+        <div style="font-size:11px;padding:2px 8px;border:1px solid rgba(255,255,255,0.14);border-radius:6px;color:#6f6f78">3</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 10px;border-radius:8px;background:transparent">
+        <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.07)">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#cfcfd6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="11" height="13.5" rx="2"></rect><rect x="7.7" y="2.5" width="4.6" height="3" rx="1.2"></rect><path d="M7.5 9.5 h5"></path><path d="M7.5 12.5 h3.5"></path></svg>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1px;flex-grow:1;min-width:0">
+          <div style="font-size:14px;color:#f2f2f5">剪贴板</div>
+          <div style="font-size:11px;color:#8a8a94">历史记录 · 构想中</div>
+        </div>
+        <div style="font-size:11px;padding:2px 8px;border:1px solid rgba(255,255,255,0.14);border-radius:6px;color:#6f6f78">4</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#E8A54B","options":["#E8A54B","#E4684C","#58C4A3","#7C8CF8"]},"$preview":{"width":760,"height":430}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#E8A54B';
+    return { accent, accentSoft: accent + '2E', accentLine: accent + '66' };
+  }
+}
+</script>
+</body>
+</html>

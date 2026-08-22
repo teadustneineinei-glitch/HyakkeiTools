@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 岛配色 · 天青（深色）：墨青底 + 提亮的天青强调，与浅色套一一对应 -->
+    <SolidColorBrush x:Key="Island.Bg" Color="#F21E2425" />
+    <SolidColorBrush x:Key="Island.TextPrimary" Color="#FFE6EBE9" />
+    <SolidColorBrush x:Key="Island.TextSecondary" Color="#FF97A19E" />
+    <SolidColorBrush x:Key="Island.TextTertiary" Color="#FF6E7876" />
+    <SolidColorBrush x:Key="Island.IconDefault" Color="#FF939B99" />
+    <SolidColorBrush x:Key="Island.Hairline" Color="#14FFFFFF" />
+    <SolidColorBrush x:Key="Island.HoverWash" Color="#0FFFFFFF" />
+    <SolidColorBrush x:Key="Island.TrackWash" Color="#12FFFFFF" />
+    <SolidColorBrush x:Key="Island.SegmentOn" Color="#FF2C3435" />
+    <SolidColorBrush x:Key="Island.SegmentOnBorder" Color="#1FFFFFFF" />
+    <SolidColorBrush x:Key="Island.Accent" Color="#FF8FB6BD" />
+    <SolidColorBrush x:Key="Island.AccentWash" Color="#1F8FB6BD" />
+    <SolidColorBrush x:Key="Island.AccentBorder" Color="#4D8FB6BD" />
+
+</ResourceDictionary>

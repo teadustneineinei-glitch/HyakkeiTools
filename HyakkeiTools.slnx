@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Hyakkei.App/Hyakkei.App.csproj" />
+    <Project Path="src/Hyakkei.Core/Hyakkei.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Tools/">
+    <Project Path="src/Tools/Hyakkei.Tool.AutoClicker/Hyakkei.Tool.AutoClicker.csproj" />
+    <Project Path="src/Tools/Hyakkei.Tool.Translator/Hyakkei.Tool.Translator.csproj" />
+  </Folder>
+</Solution>
